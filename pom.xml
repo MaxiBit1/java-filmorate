@@ -14,7 +14,9 @@
 	<name>filmorate</name>
 	<description>Мини-версия приложения для оценивания фильмов</description>
 	<properties>
-		<java.version>17</java.version>
+		<maven.compiler.release>11</maven.compiler.release>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>
