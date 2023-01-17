@@ -1,10 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.UserException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -28,16 +25,16 @@ import java.util.Map;
 @Slf4j
 public class UserController {
 
-    private Map<Integer, User> mapUser = new HashMap<>();
+    private final Map<Integer, User> user = new HashMap<>();
 
     /**
      * Метод получения списка всех user`ов
      *
      * @return - список всех user`ов
      */
-    @GetMapping("/users")
+    @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(mapUser.values());
+        return new ArrayList<>(user.values());
     }
 
     /**
@@ -46,10 +43,10 @@ public class UserController {
      * @param user - user
      * @return - сохраненный user
      */
-    @PostMapping("/users")
+    @PostMapping
     public User createUser(@RequestBody User user) {
         userValidation(user);
-        if (mapUser.containsKey(user.getId())) {
+        if (this.user.containsKey(user.getId())) {
             log.warn("Такой user уже есть");
             throw new UserException("Такой user уже есть");
         } else {
@@ -65,14 +62,14 @@ public class UserController {
      * @param user - user
      * @return обновленный user
      */
-    @PutMapping("/users")
+    @PutMapping
     public User updateUser(@RequestBody User user) {
         userValidation(user);
-        if (!mapUser.containsKey(user.getId())) {
+        if (!this.user.containsKey(user.getId())) {
             log.warn("Такого user нет");
             throw new UserException("Такого user нет");
         } else {
-            User userFromMap = mapUser.get(user.getId());
+            User userFromMap = this.user.get(user.getId());
             setUser(user, userFromMap);
             log.info("user обновлен");
             return userFromMap;
@@ -107,9 +104,9 @@ public class UserController {
             user.setName(user.getLogin());
         }
         if (user.getId() == 0) {
-            user.setId(mapUser.size() + 1);
+            user.setId(this.user.size() + 1);
         }
-        mapUser.put(user.getId(), user);
+        this.user.put(user.getId(), user);
     }
 
     /**
