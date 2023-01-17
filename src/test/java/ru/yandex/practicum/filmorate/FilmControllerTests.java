@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.FilmException;
@@ -22,12 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class FilmControllerTests {
 
+    @Autowired
     private FilmController filmController;
-
-    @BeforeEach
-    public void setUp() {
-        filmController = new FilmController();
-    }
 
     @Test
     void shouldCreateFilm() {
@@ -38,7 +34,7 @@ class FilmControllerTests {
                 .duration(23)
                 .build();
         filmController.createFilm(film);
-        assertEquals(filmController.getMapFilms().get(1), film);
+        assertEquals(film, filmController.getListFilm().get(1));
     }
 
     @Test
@@ -171,7 +167,7 @@ class FilmControllerTests {
                 FilmException.class,
                 () -> filmController.updateFilm(film1)
         );
-        assertEquals("Такого фильма нет", exception.getMessage());
+        assertEquals("Фильма нет", exception.getMessage());
     }
 
     @Test
@@ -191,6 +187,6 @@ class FilmControllerTests {
                 .duration(23)
                 .build();
         filmController.updateFilm(film1);
-        assertEquals(film, filmController.getMapFilms().get(1));
+        assertEquals(film, filmController.getListFilm().get(0));
     }
 }

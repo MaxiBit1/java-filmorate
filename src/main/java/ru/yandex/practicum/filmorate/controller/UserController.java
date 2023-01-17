@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +24,11 @@ import java.util.Map;
  * @version 1.0
  */
 @RestController
+@RequestMapping("/users")
+@Slf4j
 public class UserController {
 
-    @Getter
     private Map<Integer, User> mapUser = new HashMap<>();
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     /**
      * Метод получения списка всех user`ов
@@ -47,16 +48,8 @@ public class UserController {
      */
     @PostMapping("/users")
     public User createUser(@RequestBody User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.warn("Ошибка в Email");
-            throw new ValidationException("Ошибка в Email");
-        } else if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn("Ошибка в логине");
-            throw new ValidationException("Ошибка в логине");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Ошибка в дне рождения");
-            throw new ValidationException("Ошибка в дне рождения");
-        } else if (mapUser.containsKey(user.getId())) {
+        userValidation(user);
+        if (mapUser.containsKey(user.getId())) {
             log.warn("Такой user уже есть");
             throw new UserException("Такой user уже есть");
         } else {
@@ -74,6 +67,24 @@ public class UserController {
      */
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) {
+        userValidation(user);
+        if (!mapUser.containsKey(user.getId())) {
+            log.warn("Такого user нет");
+            throw new UserException("Такого user нет");
+        } else {
+            User userFromMap = mapUser.get(user.getId());
+            setUser(user, userFromMap);
+            log.info("user обновлен");
+            return userFromMap;
+        }
+    }
+
+    /**
+     * Метод для валидации user`а
+     *
+     * @param user - user
+     */
+    private static void userValidation(User user) {
         if (user.getEmail() == null || !user.getEmail().contains("@")) {
             log.warn("Ошибка в Email");
             throw new ValidationException("Ошибка в Email");
@@ -83,14 +94,6 @@ public class UserController {
         } else if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Ошибка в дне рождения");
             throw new ValidationException("Ошибка в дне рождения");
-        } else if (!mapUser.containsKey(user.getId())) {
-            log.warn("Такого user нет");
-            throw new UserException("Такого user нет");
-        } else {
-            User userFromMap = mapUser.get(user.getId());
-            setUser(user, userFromMap);
-            log.info("user обновлен");
-            return userFromMap;
         }
     }
 

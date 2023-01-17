@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.UserException;
@@ -22,12 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class UserControllerTest {
 
+    @Autowired
     UserController userController;
-
-    @BeforeEach
-    public void setup() {
-        userController = new UserController();
-    }
 
     @Test
     public void shouldCreateUser() {
@@ -38,7 +34,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(1946, Month.MAY, 2))
                 .build();
         userController.createUser(user);
-        assertEquals(user, userController.getMapUser().get(1));
+        assertEquals(user, userController.getUsers().get(4));
     }
 
     @Test
@@ -191,7 +187,7 @@ public class UserControllerTest {
     @Test
     public void shouldReturnExceptionUserNotExist() {
         User user1 = User.builder()
-                .id(1)
+                .id(99999)
                 .email("mail@mail.ru")
                 .name("Jhon")
                 .login("VVVVVV")
@@ -222,6 +218,6 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2012, Month.MAY, 2))
                 .build();
         userController.updateUser(user1);
-        assertEquals(user1, userController.getMapUser().get(1));
+        assertEquals(user1, userController.getUsers().get(0));
     }
 }
