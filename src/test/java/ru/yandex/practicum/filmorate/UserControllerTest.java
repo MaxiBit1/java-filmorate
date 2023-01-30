@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -208,6 +209,8 @@ public class UserControllerTest {
                 .name("Jhon")
                 .login("VVVVVV")
                 .birthday(LocalDate.of(2012, Month.MAY, 2))
+                .likesFilmsId(new HashSet<>())
+                .friendsId(new HashSet<>())
                 .build();
         userController.createUser(user);
         User user1 = User.builder()
@@ -216,6 +219,8 @@ public class UserControllerTest {
                 .name("aaaaaaaaaa")
                 .login("VsadsdaV")
                 .birthday(LocalDate.of(2012, Month.MAY, 2))
+                .likesFilmsId(new HashSet<>())
+                .friendsId(new HashSet<>())
                 .build();
         userController.updateUser(user1);
         assertEquals(user1, userController.getUsers().get(0));
