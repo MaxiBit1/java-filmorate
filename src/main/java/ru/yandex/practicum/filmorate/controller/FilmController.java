@@ -1,17 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FilmException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Класс контроллера для фильмов
@@ -21,10 +16,16 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
 
-    private final Map<Integer, Film> films = new HashMap<>();
+    private FilmStorage filmStorage;
+    private FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     /**
      * Метод получения списка фильмов
@@ -33,7 +34,7 @@ public class FilmController {
      */
     @GetMapping
     public List<Film> getListFilm() {
-        return new ArrayList<>(films.values());
+        return filmStorage.getListFilm();
     }
 
     /**
@@ -44,16 +45,7 @@ public class FilmController {
      */
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
-        filmValidation(film);
-        if(films.containsKey(film.getId())) {
-            log.warn("Фильм уже есть");
-            throw new FilmException("Фильм уже есть");
-        } else {
-            film.setId(films.size() + 1);
-            films.put(film.getId(), film);
-            log.info("Фильм создан");
-            return film;
-        }
+        return filmStorage.createFilm(film);
     }
 
     /**
@@ -61,52 +53,49 @@ public class FilmController {
      *
      * @param film - фильм
      * @return обновленный фильм
-     */
+         */
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
-        filmValidation(film);
-        if(!films.containsKey(film.getId())) {
-            log.warn("Фильма нет");
-            throw new FilmException("Фильма нет");
-        } else {
-            Film filmFromList = films.get(film.getId());
-            setAtributeFilm(film, filmFromList);
-            log.info("Фильм обновлен");
-            return filmFromList;
-        }
+        return filmStorage.updateFilm(film);
     }
 
     /**
-     * Метод для обработки валидации фильма
-     *
-     * @param film - фильм
+     * Метод получения фильма по айди
+     * @param id - айди фильма
+     * @return - фильм
      */
-    private static void filmValidation(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("Ошибка в названии фильма!");
-            throw new ValidationException("Ошибка в названии фильма!");
-        } else if (film.getDescription().length() > 200) {
-            log.warn("Ошибка в длине фильма");
-            throw new ValidationException("Ошибка в длине фильма");
-        } else if (film.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 27))) {
-            log.warn("Ошибка в дате релиза фильма");
-            throw new ValidationException("Ошибка в дате релиза фильма");
-        } else if (film.getDuration() <= 0) {
-            log.warn("Ошибка в продолжительности фильма");
-            throw new ValidationException("Ошибка в продолжительности фильма");
-        }
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable long id) {
+        return filmService.getFilmById(id);
     }
 
     /**
-     * Установка атбрибутов для фильма
-     *
-     * @param film         - обновленный фильм
-     * @param filmFromList - фильм из хранилища
+     * Метод установки лайка за фильм
+     * @param id - айди фильма
+     * @param userId - айди юзера
      */
-    private void setAtributeFilm(Film film, Film filmFromList) {
-        filmFromList.setName(film.getName());
-        filmFromList.setDescription(film.getDescription());
-        filmFromList.setReleaseDate(film.getReleaseDate());
-        filmFromList.setDuration(film.getDuration());
+    @PutMapping("/{id}/like/{userId}")
+    public void setLikeUser(@PathVariable long id, @PathVariable long userId) {
+        filmService.setLikeFilm(id, userId);
+    }
+
+    /**
+     * Метод удаления фильма
+     * @param id - айди фильма
+     * @param userId - айди юзера
+     */
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLikeUser(@PathVariable long id, @PathVariable long userId) {
+        filmService.deleteLikeFilm(id, userId);
+    }
+
+    /**
+     * Список популярных фильмов
+     * @param count - до какого фильма
+     * @return - список популярных фильмов
+     */
+    @GetMapping("/popular")
+    public List<Film> popularFilms(@RequestParam(defaultValue = "10") String count) {
+        return filmService.getPopularFilms(Integer.parseInt(count));
     }
 }

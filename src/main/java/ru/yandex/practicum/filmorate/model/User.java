@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Класс user`ов
@@ -14,9 +16,11 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class User {
-    private int id;
+    private long id;
     private String email;
     private String login;
     private String name;
     private LocalDate birthday;
+    private Set<Long> friendsId;
+    private Set<Long> likesFilmsId;
 }

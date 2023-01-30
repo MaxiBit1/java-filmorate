@@ -2,16 +2,14 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.UserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -25,7 +23,14 @@ import java.util.Map;
 @Slf4j
 public class UserController {
 
-    private final Map<Integer, User> user = new HashMap<>();
+    private UserStorage userStorage;
+    private UserService userService;
+
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
+    }
 
     /**
      * Метод получения списка всех user`ов
@@ -34,7 +39,7 @@ public class UserController {
      */
     @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(user.values());
+        return userStorage.getUsers();
     }
 
     /**
@@ -45,15 +50,7 @@ public class UserController {
      */
     @PostMapping
     public User createUser(@RequestBody User user) {
-        userValidation(user);
-        if (this.user.containsKey(user.getId())) {
-            log.warn("Такой user уже есть");
-            throw new UserException("Такой user уже есть");
-        } else {
-            log.info("user сохранен");
-            addUser(user);
-            return user;
-        }
+        return userStorage.createUser(user);
     }
 
     /**
@@ -64,61 +61,63 @@ public class UserController {
      */
     @PutMapping
     public User updateUser(@RequestBody User user) {
-        userValidation(user);
-        if (!this.user.containsKey(user.getId())) {
-            log.warn("Такого user нет");
-            throw new UserException("Такого user нет");
-        } else {
-            User userFromMap = this.user.get(user.getId());
-            setUser(user, userFromMap);
-            log.info("user обновлен");
-            return userFromMap;
-        }
+        return userStorage.updateUser(user);
     }
 
     /**
-     * Метод для валидации user`а
+     * Метод получения юзера по id
      *
-     * @param user - user
+     * @param id - id юзера
+     * @return - юзер
      */
-    private static void userValidation(User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.warn("Ошибка в Email");
-            throw new ValidationException("Ошибка в Email");
-        } else if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn("Ошибка в логине");
-            throw new ValidationException("Ошибка в логине");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Ошибка в дне рождения");
-            throw new ValidationException("Ошибка в дне рождения");
-        }
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable long id) {
+        return userService.getUserById(id);
     }
 
     /**
-     * Метод для добавления user`а
+     * Метод добавления в друзья
      *
-     * @param user - user
+     * @param id       - айди юзера
+     * @param friendId - айди друга
      */
-    private void addUser(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getId() == 0) {
-            user.setId(this.user.size() + 1);
-        }
-        this.user.put(user.getId(), user);
+    @PutMapping("/{id}/friends/{friendId}")
+    public void setFriendsUser(@PathVariable long id, @PathVariable long friendId) {
+        userService.addFriends(id, friendId);
     }
 
     /**
-     * Метод установки атрибутов для user`а
+     * Метод удаления друга
      *
-     * @param user        - обновленный user
-     * @param userFromMap - user из хранилища
+     * @param id        - айди юзера
+     * @param friendsId - айди друга
      */
-    private void setUser(User user, User userFromMap) {
-        userFromMap.setName(user.getName());
-        userFromMap.setEmail(user.getEmail());
-        userFromMap.setLogin(user.getLogin());
-        userFromMap.setBirthday(user.getBirthday());
+    @DeleteMapping("/{id}/friends/{friendsID}")
+    public void deleteFriends(@PathVariable long id, @PathVariable("friendsID") long friendsId) {
+        userService.delFriend(id, friendsId);
     }
+
+    /**
+     * Метод получения списка друзей
+     *
+     * @param id - айди юзера
+     * @return - список друзей
+     */
+    @GetMapping("/{id}/friends")
+    public List<User> userFriends(@PathVariable long id) {
+        return userService.userFriends(id);
+    }
+
+    /**
+     * Метод получения общих друзей
+     *
+     * @param idUser      - айди юзера
+     * @param idNotFriend - айди другого юзера
+     * @return - список общих друзей
+     */
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> usersCommonFriends(@PathVariable("id") long idUser, @PathVariable("otherId") long idNotFriend) {
+        return userService.userCommonFriends(idUser, idNotFriend);
+    }
+
 }
