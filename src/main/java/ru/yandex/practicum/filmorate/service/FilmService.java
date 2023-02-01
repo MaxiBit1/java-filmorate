@@ -3,12 +3,16 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.FilmException;
 import ru.yandex.practicum.filmorate.exception.UserException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +43,8 @@ public class FilmService {
      */
     public Film getFilmById(long idFilm) {
         if (idFilm < 0 || idFilm > filmStorage.getListFilm().size()) {
-            log.warn("Ошибка в id");
-            throw new FilmException("Id меньше или равен, больше длины списка");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new FilmException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Получение фильма по id");
         return filmStorage.getListFilm().get((int) (idFilm - 1));
@@ -53,13 +57,13 @@ public class FilmService {
      * @param idUser - айди юзера
      */
     public void setLikeFilm(long idFilm, long idUser) {
-        if (idFilm < 0 || idFilm > filmStorage.getListFilm().size()) {
-            log.warn("Ошибка в id");
-            throw new FilmException("Id меньше или равен, больше длины списка");
+        if (idFilm < 0 || idFilm > filmStorage.getListFilm().size() ) {
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new FilmException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Лайк фильму " + idFilm + " поставлен");
         filmStorage.getFilms().get(idFilm).getLikes().add(idUser);
@@ -74,12 +78,12 @@ public class FilmService {
      */
     public void deleteLikeFilm(long idFilm, long idUser) {
         if (idFilm < 0 || idFilm > filmStorage.getListFilm().size()) {
-            log.warn("Ошибка в id");
-            throw new FilmException("Id меньше или равен, больше длины списка");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new FilmException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Лайк фильму " + idFilm + " удален");
         filmStorage.getFilms().get(idFilm).getLikes().remove(idUser);
@@ -98,5 +102,26 @@ public class FilmService {
                 .sorted(((o1, o2) -> o2.getLikes().size() - o1.getLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Метод для обработки валидации фильма
+     *
+     * @param film - фильм
+     */
+    public static void filmValidation(Film film) {
+        if (film.getName() == null || film.getName().isBlank()) {
+            log.warn(ExceptionAndLogs.NAME_FILM.getDescription());
+            throw new ValidationException(ExceptionAndLogs.NAME_FILM.getDescription());
+        } else if (film.getDescription().length() > 200) {
+            log.warn(ExceptionAndLogs.DESCRIPTION_FILM.getDescription());
+            throw new ValidationException(ExceptionAndLogs.DESCRIPTION_FILM.getDescription());
+        } else if (film.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 27))) {
+            log.warn(ExceptionAndLogs.DATE_FILM.getDescription());
+            throw new ValidationException(ExceptionAndLogs.DATE_FILM.getDescription());
+        } else if (film.getDuration() <= 0) {
+            log.warn(ExceptionAndLogs.LENGTH_FILM.getDescription());
+            throw new ValidationException(ExceptionAndLogs.LENGTH_FILM.getDescription());
+        }
     }
 }

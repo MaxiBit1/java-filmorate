@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -39,6 +38,7 @@ public class UserController {
      */
     @GetMapping
     public List<User> getUsers() {
+        log.info("Get метод получения всех юзеров");
         return userStorage.getUsers();
     }
 
@@ -50,6 +50,7 @@ public class UserController {
      */
     @PostMapping
     public User createUser(@RequestBody User user) {
+        log.info("Post метод создания юзера");
         return userStorage.createUser(user);
     }
 
@@ -61,6 +62,7 @@ public class UserController {
      */
     @PutMapping
     public User updateUser(@RequestBody User user) {
+        log.info("Put метод обновления юзера");
         return userStorage.updateUser(user);
     }
 
@@ -72,6 +74,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public User getUserById(@PathVariable long id) {
+        log.info("Get метод получения юзера по id - " + id);
         return userService.getUserById(id);
     }
 
@@ -83,6 +86,7 @@ public class UserController {
      */
     @PutMapping("/{id}/friends/{friendId}")
     public void setFriendsUser(@PathVariable long id, @PathVariable long friendId) {
+        log.info("Put метод добавления в юзером - " + id + " друга - " + friendId);
         userService.addFriends(id, friendId);
     }
 
@@ -94,7 +98,8 @@ public class UserController {
      */
     @DeleteMapping("/{id}/friends/{friendsID}")
     public void deleteFriends(@PathVariable long id, @PathVariable("friendsID") long friendsId) {
-        userService.delFriend(id, friendsId);
+        log.info("Delete метод удаления юзером - " + id + " друга - " + friendsId);
+        userService.deleteFriend(id, friendsId);
     }
 
     /**
@@ -105,6 +110,7 @@ public class UserController {
      */
     @GetMapping("/{id}/friends")
     public List<User> userFriends(@PathVariable long id) {
+        log.info("Get метод получения списка друзей юзера - " + id);
         return userService.userFriends(id);
     }
 
@@ -117,6 +123,7 @@ public class UserController {
      */
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> usersCommonFriends(@PathVariable("id") long idUser, @PathVariable("otherId") long idNotFriend) {
+        log.info("Get метод получения общих друзей юзера - "+ idUser + " с другим юзером - " + idNotFriend);
         return userService.userCommonFriends(idUser, idNotFriend);
     }
 

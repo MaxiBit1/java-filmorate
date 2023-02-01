@@ -3,14 +3,15 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FriendsException;
+import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.UserException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Класс бизнес-логики юзеров
@@ -37,8 +38,8 @@ public class UserService {
      */
     public User getUserById(long idUser) {
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Получение юзера по id");
         return userStorage.getUsers().get((int) (idUser - 1));
@@ -51,13 +52,12 @@ public class UserService {
      * @param idFriend - айди друга
      */
     public void addFriends(long idUser, long idFriend) {
-        if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
-        }
-        if (idFriend < 0 || idFriend > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id друга");
-            throw new FriendsException("Id друга меньше нуля или равен, больше длине списка юзеров");
+        if (idUser < 0
+                || idUser > userStorage.getUsers().size()
+                || idFriend < 0
+                || idFriend > userStorage.getUsers().size()) {
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Друг добавлен");
         userStorage.getUser().get(idUser).getFriendsId().add(idFriend);
@@ -70,14 +70,13 @@ public class UserService {
      * @param idUser   - айди юзера
      * @param idFriend - айди друга
      */
-    public void delFriend(long idUser, long idFriend) {
-        if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
-        }
-        if (idFriend < 0 || idFriend > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id друга");
-            throw new FriendsException("Id друга меньше нуля или равен, больше длине списка юзеров");
+    public void deleteFriend(long idUser, long idFriend) {
+        if (idUser < 0
+                || idUser > userStorage.getUsers().size()
+                || idFriend < 0
+                || idFriend > userStorage.getUsers().size()) {
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         log.info("Друг удален");
         userStorage.getUser().get(idUser).getFriendsId().remove(idFriend);
@@ -91,8 +90,8 @@ public class UserService {
      */
     public List<User> userFriends(long idUser) {
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
         List<User> resultList = new ArrayList<>();
         for (Long friendsId : userStorage.getUser().get(idUser).getFriendsId()) {
@@ -110,29 +109,36 @@ public class UserService {
      * @return - список общих друзей
      */
     public List<User> userCommonFriends(long idUser, long idOtherUser) {
-        List<Long> commonFriendsIdList = new ArrayList<>();
-        List<User> resultList = new ArrayList<>();
 
-        if (idUser < 0 || idUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id");
-            throw new UserException("Id меньше нуля или равен, больше длине списка юзеров");
+        Set<User> userFriends = new HashSet<>(userFriends(idUser));
+        Set<User> otherUserFriends = new HashSet<>(userFriends(idOtherUser));
+
+        if (idUser < 0
+                || idUser > userStorage.getUsers().size()
+                || idOtherUser < 0
+                || idOtherUser > userStorage.getUsers().size()) {
+            log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
+            throw new UserException(ExceptionAndLogs.ID_ERROR.getDescription());
         }
-        if (idOtherUser < 0 || idOtherUser > userStorage.getUsers().size()) {
-            log.warn("Ошибка в id друга");
-            throw new FriendsException("Id друга меньше нуля или равен, больше длине списка юзеров");
+        log.info("Список общих друзей получен");
+        return userFriends.stream().filter(otherUserFriends::contains).collect(Collectors.toList());
+    }
+
+    /**
+     * Метод для валидации user`а
+     *
+     * @param user - user
+     */
+    public static void userValidation(User user) {
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            log.warn(ExceptionAndLogs.USER_EMAIL.getDescription());
+            throw new ValidationException(ExceptionAndLogs.USER_EMAIL.getDescription());
+        } else if (user.getLogin() == null || user.getLogin().isBlank()) {
+            log.warn(ExceptionAndLogs.USER_LOGIN.getDescription());
+            throw new ValidationException(ExceptionAndLogs.USER_LOGIN.getDescription());
+        } else if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn(ExceptionAndLogs.USER_BIRTHDAY.getDescription());
+            throw new ValidationException(ExceptionAndLogs.USER_BIRTHDAY.getDescription());
         }
-        for (Long longCheck : userStorage.getUser().get(idUser).getFriendsId()) {
-            if (userStorage.getUser().get(idOtherUser).getFriendsId().stream()
-                    .anyMatch(x -> Objects.equals(x, longCheck))) {
-                commonFriendsIdList.add(longCheck);
-            }
-        }
-        if (!commonFriendsIdList.isEmpty()) {
-            for (Long commonFriendId : commonFriendsIdList) {
-                resultList.add(userStorage.getUser().get(commonFriendId));
-            }
-            log.info("Список общих друзей получен");
-        }
-        return resultList;
     }
 }

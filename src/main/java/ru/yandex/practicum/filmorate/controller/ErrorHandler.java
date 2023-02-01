@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.FilmException;
-import ru.yandex.practicum.filmorate.exception.FriendsException;
 import ru.yandex.practicum.filmorate.exception.UserException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
@@ -37,7 +36,7 @@ public class ErrorHandler {
      * @param e - ошибка
      * @return - ответ клиенту
      */
-    @ExceptionHandler({FilmException.class, FriendsException.class, UserException.class})
+    @ExceptionHandler({FilmException.class, UserException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse notFound(final RuntimeException e) {
         return new ErrorResponse("Error NotFound", e.getMessage());

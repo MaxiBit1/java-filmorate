@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.UserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -22,10 +22,10 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     public User createUser(User user) {
-        userValidation(user);
+        UserService.userValidation(user);
         if (this.user.containsKey(user.getId())) {
-            log.warn("Такой user уже есть");
-            throw new UserException("Такой user уже есть");
+            log.warn(ExceptionAndLogs.USER_EXIST.getDescription());
+            throw new UserException(ExceptionAndLogs.USER_EXIST.getDescription());
         } else {
             log.info("user сохранен");
             addUser(user);
@@ -34,10 +34,10 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     public User updateUser(User user) {
-        userValidation(user);
+        UserService.userValidation(user);
         if (!this.user.containsKey(user.getId())) {
-            log.warn("Такого user нет");
-            throw new UserException("Такого user нет");
+            log.warn(ExceptionAndLogs.NO_USER.getDescription());
+            throw new UserException(ExceptionAndLogs.NO_USER.getDescription());
         } else {
             User userFromMap = this.user.get(user.getId());
             setUser(user, userFromMap);
@@ -46,23 +46,7 @@ public class InMemoryUserStorage implements UserStorage{
         }
     }
 
-    /**
-     * Метод для валидации user`а
-     *
-     * @param user - user
-     */
-    private static void userValidation(User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.warn("Ошибка в Email");
-            throw new ValidationException("Ошибка в Email");
-        } else if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn("Ошибка в логине");
-            throw new ValidationException("Ошибка в логине");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Ошибка в дне рождения");
-            throw new ValidationException("Ошибка в дне рождения");
-        }
-    }
+
 
     /**
      * Метод для добавления user`а

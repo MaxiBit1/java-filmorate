@@ -3,12 +3,11 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.FilmException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.*;
 
 @Component
@@ -22,10 +21,10 @@ public class InMemoryFilmStorage implements FilmStorage{
     }
 
     public Film createFilm(Film film) {
-        filmValidation(film);
+        FilmService.filmValidation(film);
         if(films.containsKey(film.getId())) {
-            log.warn("Фильм уже есть");
-            throw new FilmException("Фильм уже есть");
+            log.warn(ExceptionAndLogs.EXIST_FILM.getDescription());
+            throw new FilmException(ExceptionAndLogs.EXIST_FILM.getDescription());
         } else {
             film.setId(films.size() + 1);
             film.setLikes(new HashSet<>());
@@ -36,36 +35,15 @@ public class InMemoryFilmStorage implements FilmStorage{
     }
 
     public Film updateFilm(Film film) {
-        filmValidation(film);
+        FilmService.filmValidation(film);
         if(!films.containsKey(film.getId())) {
-            log.warn("Фильма нет");
-            throw new FilmException("Фильма нет");
+            log.warn(ExceptionAndLogs.NO_FILM.getDescription());
+            throw new FilmException(ExceptionAndLogs.NO_FILM.getDescription());
         } else {
             Film filmFromList = films.get(film.getId());
             setAtributeFilm(film, filmFromList);
             log.info("Фильм обновлен");
             return filmFromList;
-        }
-    }
-
-    /**
-     * Метод для обработки валидации фильма
-     *
-     * @param film - фильм
-     */
-    private static void filmValidation(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("Ошибка в названии фильма!");
-            throw new ValidationException("Ошибка в названии фильма!");
-        } else if (film.getDescription().length() > 200) {
-            log.warn("Ошибка в длине фильма");
-            throw new ValidationException("Ошибка в длине фильма");
-        } else if (film.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 27))) {
-            log.warn("Ошибка в дате релиза фильма");
-            throw new ValidationException("Ошибка в дате релиза фильма");
-        } else if (film.getDuration() <= 0) {
-            log.warn("Ошибка в продолжительности фильма");
-            throw new ValidationException("Ошибка в продолжительности фильма");
         }
     }
 
