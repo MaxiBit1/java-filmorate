@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.films;
+package ru.yandex.practicum.filmorate.model;
 
 
 import lombok.Builder;
@@ -22,4 +22,6 @@ public class Film {
     private LocalDate releaseDate;
     private long duration;
     private Set<Long> likes;
+    private Set<Genre> genre;
+    private MPA mpa;
 }

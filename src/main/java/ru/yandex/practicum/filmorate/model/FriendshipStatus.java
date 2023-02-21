@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.users;
+package ru.yandex.practicum.filmorate.model;
 
 public enum FriendshipStatus {
     Сonfirmation,

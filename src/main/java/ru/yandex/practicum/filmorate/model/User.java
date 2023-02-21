@@ -23,4 +23,5 @@ public class User {
     private LocalDate birthday;
     private Set<Long> friendsId;
     private Set<Long> likesFilmsId;
+    private FriendshipStatus friendshipStatus;
 }
