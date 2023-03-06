@@ -6,11 +6,12 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.UserException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.user.InMemoryUserService;
+import ru.yandex.practicum.filmorate.service.user.ValidationUserClass;
 
 import java.util.*;
 
-@Component
+@Component("InMemoryUserStorage")
 @Slf4j
 public class InMemoryUserStorage implements UserStorage{
 
@@ -22,7 +23,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     public User createUser(User user) {
-        UserService.userValidation(user);
+        ValidationUserClass.userValidation(user);
         if (this.user.containsKey(user.getId())) {
             log.warn(ExceptionAndLogs.USER_EXIST.getDescription());
             throw new UserException(ExceptionAndLogs.USER_EXIST.getDescription());
@@ -34,7 +35,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     public User updateUser(User user) {
-        UserService.userValidation(user);
+        ValidationUserClass.userValidation(user);
         if (!this.user.containsKey(user.getId())) {
             log.warn(ExceptionAndLogs.NO_USER.getDescription());
             throw new UserException(ExceptionAndLogs.NO_USER.getDescription());

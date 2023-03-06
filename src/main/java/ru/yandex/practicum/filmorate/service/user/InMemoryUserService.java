@@ -1,16 +1,18 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ExceptionAndLogs;
 import ru.yandex.practicum.filmorate.exception.UserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -20,13 +22,13 @@ import java.util.stream.Collectors;
  * @version 1.0
  */
 @Slf4j
-@Service
-public class UserService {
+@Service("InMemoryUserService")
+public class InMemoryUserService implements UserService{
 
     private UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public InMemoryUserService(@Qualifier("InMemoryUserStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -36,6 +38,7 @@ public class UserService {
      * @param idUser - айди юзера
      * @return - юзер
      */
+    @Override
     public User getUserById(long idUser) {
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
             log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
@@ -51,6 +54,7 @@ public class UserService {
      * @param idUser   - айди юзера
      * @param idFriend - айди друга
      */
+    @Override
     public void addFriends(long idUser, long idFriend) {
         if (idUser < 0
                 || idUser > userStorage.getUsers().size()
@@ -70,6 +74,7 @@ public class UserService {
      * @param idUser   - айди юзера
      * @param idFriend - айди друга
      */
+    @Override
     public void deleteFriend(long idUser, long idFriend) {
         if (idUser < 0
                 || idUser > userStorage.getUsers().size()
@@ -88,6 +93,7 @@ public class UserService {
      * @param idUser - айди юзера
      * @return - список друзей
      */
+    @Override
     public List<User> userFriends(long idUser) {
         if (idUser < 0 || idUser > userStorage.getUsers().size()) {
             log.warn(ExceptionAndLogs.ID_ERROR.getDescription());
@@ -108,6 +114,7 @@ public class UserService {
      * @param idOtherUser - айди другого юзера
      * @return - список общих друзей
      */
+    @Override
     public List<User> userCommonFriends(long idUser, long idOtherUser) {
 
         Set<User> userFriends = new HashSet<>(userFriends(idUser));
@@ -124,21 +131,4 @@ public class UserService {
         return userFriends.stream().filter(otherUserFriends::contains).collect(Collectors.toList());
     }
 
-    /**
-     * Метод для валидации user`а
-     *
-     * @param user - user
-     */
-    public static void userValidation(User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.warn(ExceptionAndLogs.USER_EMAIL.getDescription());
-            throw new ValidationException(ExceptionAndLogs.USER_EMAIL.getDescription());
-        } else if (user.getLogin() == null || user.getLogin().isBlank()) {
-            log.warn(ExceptionAndLogs.USER_LOGIN.getDescription());
-            throw new ValidationException(ExceptionAndLogs.USER_LOGIN.getDescription());
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn(ExceptionAndLogs.USER_BIRTHDAY.getDescription());
-            throw new ValidationException(ExceptionAndLogs.USER_BIRTHDAY.getDescription());
-        }
-    }
 }
