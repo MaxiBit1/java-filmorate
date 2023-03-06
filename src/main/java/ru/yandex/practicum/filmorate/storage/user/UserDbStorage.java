@@ -104,11 +104,11 @@ public class UserDbStorage implements UserStorage {
      * @return - результат проверки
      */
     public boolean checkUserId(long idUser) {
-        for (User user : getUsers()) {
-            if (user.getId() == idUser) {
-                return true;
-            }
+        List<Integer> idUsers = jdbcTemplate.query("SELECT id_user FROM users WHERE id_user = ?",
+                (rs, rowNum) -> rs.getInt("id_user"), idUser);
+        if(idUsers.isEmpty()) {
+            return false;
         }
-        return false;
+        return true;
     }
 }

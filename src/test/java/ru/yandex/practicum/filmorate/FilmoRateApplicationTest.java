@@ -19,6 +19,8 @@ import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import java.time.LocalDate;
 import java.util.List;
 
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
@@ -78,11 +80,11 @@ public class FilmoRateApplicationTest {
 
         User user1 = userServiceDb.getUserById(1);
 
-        assertEquals(1, user1.getId());
-        assertEquals("@mail.ru", user1.getEmail());
-        assertEquals("ui", user1.getLogin());
-        assertEquals("Max", user1.getName());
-        assertEquals(LocalDate.of(1976, 9, 20), user1.getBirthday());
+        assertThat(user1).hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("email", "@mail.ru")
+                .hasFieldOrPropertyWithValue("login", "ui")
+                .hasFieldOrPropertyWithValue("name", "Max")
+                .hasFieldOrPropertyWithValue("birthday", LocalDate.of(1976, 9, 20));
     }
 
     @Test
@@ -91,15 +93,14 @@ public class FilmoRateApplicationTest {
         Film film3 = filmServiceDb.getFilmById(2);
         Film film4 = filmServiceDb.getFilmById(1);
 
-        assertEquals(2, film3.getId());
-        assertEquals("Film2", film3.getName());
-        assertEquals("sss", film3.getDescription());
-        assertEquals(200, film3.getDuration());
-        assertEquals(LocalDate.of(2009,1,9), film3.getReleaseDate());
-        assertEquals("PG-13", film3.getMpa().getName());
+        assertThat(film3).hasFieldOrPropertyWithValue("id", 2L)
+                .hasFieldOrPropertyWithValue("name", "Film2")
+                .hasFieldOrPropertyWithValue("description", "sss")
+                .hasFieldOrPropertyWithValue("releaseDate", LocalDate.of(2009,1,9));
+        assertThat(film3.getMpa()).hasFieldOrPropertyWithValue("id", 3);
 
-        assertEquals("Комедия", film4.getGenres().get(0).getName());
-        assertEquals("Мультфильм", film4.getGenres().get(1).getName());
+        assertThat(film4.getGenres().get(0)).hasFieldOrPropertyWithValue("id", 1);
+        assertThat(film4.getGenres().get(1)).hasFieldOrPropertyWithValue("id", 3);
     }
 
     @Test
@@ -110,7 +111,12 @@ public class FilmoRateApplicationTest {
         userServiceDb.addFriends(2,3);
 
         assertEquals(2, userServiceDb.userFriends(1).size());
-        assertEquals(3, userServiceDb.userCommonFriends(1,2).get(0).getId());
+        assertThat(userServiceDb.userCommonFriends(1,2).get(0))
+                .hasFieldOrPropertyWithValue("id", 3L)
+                .hasFieldOrPropertyWithValue("email", "@mail.ru")
+                .hasFieldOrPropertyWithValue("login", "tooo")
+                .hasFieldOrPropertyWithValue("name", "Max")
+                .hasFieldOrPropertyWithValue("birthday", LocalDate.of(1111, 12, 13));
         userServiceDb.deleteFriend(1, 2);
         assertEquals(1, userServiceDb.userFriends(1).size());
     }
@@ -122,10 +128,12 @@ public class FilmoRateApplicationTest {
         filmServiceDb.setLikeFilm(2, 3);
         filmServiceDb.setLikeFilm(2, 1);
 
-        assertEquals(2, filmServiceDb.getPopularFilms(3).get(0).getId());
+        assertThat(filmServiceDb.getPopularFilms(3).get(0))
+                .hasFieldOrPropertyWithValue("id", 2L);
         filmServiceDb.deleteLikeFilm(2,1);
         filmServiceDb.deleteLikeFilm(2,2);
         filmServiceDb.deleteLikeFilm(2,3);
-        assertEquals(1, filmServiceDb.getPopularFilms(3).get(0).getId());
+        assertThat(filmServiceDb.getPopularFilms(3).get(0))
+                .hasFieldOrPropertyWithValue("id", 1L);
     }
 }

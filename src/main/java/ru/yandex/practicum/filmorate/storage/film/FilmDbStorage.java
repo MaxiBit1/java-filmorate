@@ -180,12 +180,12 @@ public class FilmDbStorage implements FilmStorage {
      * @return - результат проверки
      */
     public boolean checkIdFilm(long idFilm) {
-        for (Film film : getListFilm()) {
-            if(film.getId() == idFilm){
-                return true;
-            }
+        List<Integer> films = jdbcTemplate.query("SELECT id_film FROM films WHERE id_film = ?",
+                (rs, rowNum) -> rs.getInt("id_film"), idFilm);
+        if(films.isEmpty()) {
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
