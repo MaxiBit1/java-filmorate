@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.film.ImMemoryFilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
@@ -24,7 +26,7 @@ public class FilmController {
     private FilmService filmService;
 
     @Autowired
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+    public FilmController(@Qualifier("FilmDbStorage") FilmStorage filmStorage, @Qualifier("FilmServiceDb") FilmService filmService) {
         this.filmStorage = filmStorage;
         this.filmService = filmService;
     }
@@ -36,7 +38,7 @@ public class FilmController {
      */
     @GetMapping
     public List<Film> getListFilm() {
-        log.info("Get метод получения списка друзей");
+        log.info("Get метод получения списка фильмов");
         return filmStorage.getListFilm();
     }
 

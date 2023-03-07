@@ -3,8 +3,12 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -13,7 +17,8 @@ import java.util.Set;
  * @author Max Vasilyev
  * @version 1.0
  */
-@Data
+@Getter
+@Setter
 @Builder
 public class Film {
     private long id;
@@ -21,7 +26,29 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private long duration;
-    private Set<Long> likes;
-    private Set<Genre> genre;
-    private MPA mpa;
+    private Mpa mpa;
+    private List<Genres> genres;
+
+
+    public Film() {
+    }
+
+    public Film(long id, String name, String description, LocalDate releaseDate, long duration, Mpa mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
+
+    public Film(long id, String name, String description, LocalDate releaseDate, long duration, Mpa mpa, List<Genres> genres) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+        this.genres = genres;
+    }
 }
